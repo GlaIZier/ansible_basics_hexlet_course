@@ -1,0 +1,19 @@
+- hosts: all
+  gather_facts: no
+
+  vars:
+    users:
+      - one
+      - two
+      - free
+
+  tasks:
+    - user: name={{ item }}
+      # BEGIN (write your solution here)
+      with_items: users
+      # END
+      register: result
+
+    - name: 'Check users'
+      fail: msg='Exected users created'
+      when: not result.changed

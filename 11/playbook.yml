@@ -1,0 +1,19 @@
+- hosts: all
+  gather_facts: no
+
+  vars:
+    nodejs_install_method: package
+
+  tasks:
+    - shell: echo 'install nodejs from package'
+      when: nodejs_install_method == "package"
+
+    - shell: echo 'install nodejs from source'
+      register: nodejs_result
+      # BEGIN (write your solution here)
+      when: nodejs_install_method == "source"
+      # END
+
+    - name: "Check nodejs"
+      fail: msg="Expected nodejs to be installed from package"
+      when: not (nodejs_result | skipped)

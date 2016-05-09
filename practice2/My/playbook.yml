@@ -1,0 +1,38 @@
+- hosts: all
+  gather_facts: no
+
+  vars:
+    nginx_configs_path: /tmp/nginx/conf.d
+    hostname: hexlettest.com
+    www_data_path: "/tmp/{{ hostname }}"
+    nginx_site_config_path: "{{ nginx_configs_path }}/{{ hostname }}"
+
+  tasks:
+
+    # BEGIN (write your solution here)
+    - name: create dirs
+      file: path={{ item }} state=directory
+      with_items:
+        - "{{ www_data_path }}"
+        - "{{ nginx_site_config_path }}"
+    
+    - name: upload html
+      copy: src=templates/index.html.j2 dest={{ www_data_path }}/index.html
+      
+    - name: upload conf
+      copy: src=templates/nginx.hexlettest.com.j2 dest={{ nginx_site_config_path }}/nginx.hexlettest.com
+    
+    # END
+
+    - stat: path="{{ item }}"
+      with_items:
+        - "{{ www_data_path }}"
+        - "{{ www_data_path }}/index.html"
+        - "{{ nginx_configs_path }}"
+        - "{{ nginx_site_config_path }}"
+      register: results
+
+    - name: "Check all files and dirs exists"
+      fail: msg="Expected {{ item.item }} to be exists"
+      when: not item.stat.exists
+      with_items: "{{ results.results }}"

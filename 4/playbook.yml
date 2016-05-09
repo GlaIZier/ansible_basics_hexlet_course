@@ -1,0 +1,20 @@
+- hosts: webservers
+  gather_facts: no
+  # BEGIN (write your solution here)
+  # END
+
+  tasks:
+    - copy: src=files/hosts dest=/tmp/hosts
+
+    - name: Set file mode for `/tmp/hosts` to 777
+      # BEGIN (write your solution here)
+      file: path=/tmp/hosts state=touch mode=0777
+      
+      # END
+
+    - stat: path=/tmp/hosts
+      register: result
+
+    - name: Check file mode for `/tmp/hosts`
+      fail: msg="Expected `0777` mode, but was `{{ result.stat.mode }}`"
+      when: result.stat.mode != '0777'

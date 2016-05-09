@@ -1,0 +1,17 @@
+
+# BEGIN
+
+- name: create env.d dir
+  file: path="{{ confd_path }}" state=directory
+
+- name: upload base config
+  template: src=templates/base_config.j2 dest="{{ confd_path }}/base_config"
+
+- name: upload one core config
+  template: src=templates/one_core_config.j2 dest="{{ confd_path }}/one_core_config"
+  when: ansible_processor_cores == 1
+
+- name: assemble configs
+  assemble: src="{{ confd_path }}" dest="{{ base_config_path }}"
+
+# END

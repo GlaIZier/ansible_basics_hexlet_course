@@ -1,0 +1,57 @@
+- hosts: all
+  gather_facts: yes
+
+  vars:
+    base_config_path: /tmp/.env
+    confd_path: /tmp/env.d
+    root_path: "/opt/"
+
+  tasks:
+    # BEGIN (write your solution here)
+    - name: create directory
+      file: path={{ confd_path }} state=directory mode=0777
+      
+    # - name: create config
+    #   file: path={{ confd_path }}/base_config state=touch mode=0777
+      
+    - name:   
+      copy: dest={{ confd_path }}/base_config content='' force=yes
+      
+    - name: add facts to config
+      shell: echo "{{ item }}" >> {{ confd_path }}/base_config
+      with_items:
+        - "CPU_NUMBERS={{ ansible_processor_cores }}"
+        - "HOSTNAME={{ ansible_hostname }}"
+        - "IP_ADDRESS={{ ansible_all_ipv4_addresses[0] }}"
+        
+    - name: copy file when one core
+      copy: src=tempates/one_core_config.j2 dest=/tmp/env.d/one_core_config
+      when: ansible_processor_cores == 1
+      
+    - name: merge configs
+      assemble: src={{ confd_path }} dest={{ base_config_path }}
+    
+    # END
+
+    - stat: path="{{ item }}"
+      with_items:
+        - "{{ confd_path }}"
+        - "{{ confd_path }}/base_config"
+        - "{{ base_config_path }}"
+      register: results
+
+    - name: "Check all files and dirs exists"
+      fail: msg="Expected {{ item.item }} to be exists"
+      when: not item.stat.exists
+      with_items: "{{ results.results }}"
+
+    - shell: grep "{{item}}" {{ base_config_path }}
+      register: strings
+      with_items:
+        - "CPU_NUMBERS={{ ansible_processor_cores }}"
+        - "HOSTNAME={{ ansible_hostname }}"
+        - "IP_ADDRESS={{ ansible_all_ipv4_addresses[0] }}"
+
+    - name: "Check configs for one core machine"
+      shell: grep "USE_THREADS=0" {{ base_config_path }}
+      when: ansible_processor_cores == 1

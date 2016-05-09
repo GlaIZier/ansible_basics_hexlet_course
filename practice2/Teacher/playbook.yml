@@ -1,0 +1,15 @@
+ # BEGIN
+
+- name: "Create www-data home directory"
+  file: name={{ www_data_path }} state=directory
+
+- name: "copy template of index.html"
+  template: src=templates/index.html.j2 dest="{{ www_data_path }}/index.html"
+
+- name: "Create nginx configs directory"
+  file: name={{ nginx_configs_path }} state=directory
+
+- name: "copy nginx config"
+  template: src="templates/nginx.{{ hostname }}.j2" dest="{{ nginx_site_config_path }}"
+
+# END
